@@ -1,9 +1,56 @@
-void setup() {
-  // put your setup code here, to run once:
+#define USE_ARDUINO_INTERRUPTS true
+//Libraries
+  #include <PulseSensorPlayground.h>
+  #include <LiquidCrystal_I2C.h>
 
+//Constants
+const int PULSE_SENSOR_PIN = A0;  // Analog PIN where the PulseSensor is connected
+const int LED_PIN = 13;          // On-board LED PIN
+const int THRESHOLD = 560;       // Threshold for detecting a heartbeat
+
+//Objects
+PulseSensorPlayground pulseSensor;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+ 
+void setup() {
+  // Initialize Serial
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+
+  // PulseSensor Configuration
+  pulseSensor.analogInput(PULSE_SENSOR_PIN);
+  pulseSensor.blinkOnPulse(LED_PIN);
+  pulseSensor.setThreshold(THRESHOLD);
+
+  // Check if PulseSensor is initialized
+  if (pulseSensor.begin()) 
+  {
+    Serial.println("PulseSensor object created successfully!");
+  }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  //LCD Init
+  lcd.setCursor(0, 0);
+  lcd.print("Heart Rate");
 
+  // Get the current Beats Per Minute (BPM)
+  int currentBPM = pulseSensor.getBeatsPerMinute();
+
+  // Check if a heartbeat is detected
+  if (pulseSensor.sawStartOfBeat()) 
+  {
+    Serial.println("♥ A HeartBeat Happened!");
+    Serial.print("BPM: ");
+    Serial.println(currentBPM);
+
+    lcd.clear();
+    lcd.setCursor(0, 1);
+    lcd.print("BPM: ");
+    lcd.print(currentBPM);
+  }
+ 
+  // Add a small delay to reduce CPU usage
+  delay(20);
 }
