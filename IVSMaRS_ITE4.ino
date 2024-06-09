@@ -7,6 +7,12 @@
 const int PULSE_SENSOR_PIN = A0;  // Analog PIN where the PulseSensor is connected
 const int LED_PIN = 13;          // On-board LED PIN
 const int THRESHOLD = 560;       // Threshold for detecting a heartbeat
+const int TEMP_SENSOR = A3;      // Analog PIN where the Temperature Sensor is connected
+
+// Variables
+float tempc; //variable to store temperature in degree Celsius
+float tempf; //variable to store temperature in Fahreinheit
+float vout; //temporary variable to hold sensor reading
 
 //Objects
 PulseSensorPlayground pulseSensor;
@@ -17,6 +23,9 @@ void setup() {
   Serial.begin(9600);
   lcd.init();
   lcd.backlight();
+
+  //pinMode INPUT
+  pinMode(TEMP_SENSOR,INPUT); // Configuring TEMP_SENSOR pin as input
 
   // PulseSensor Configuration
   pulseSensor.analogInput(PULSE_SENSOR_PIN);
@@ -33,10 +42,17 @@ void setup() {
 void loop() {
   //LCD Init
   lcd.setCursor(0, 0);
-  lcd.print("Heart Rate");
+  lcd.print("Welcome");
+  lcd.setCursor(0, 1);
+  lcd.print("IVSMaRS");
 
   // Get the current Beats Per Minute (BPM)
   int currentBPM = pulseSensor.getBeatsPerMinute();
+
+  // Reading the value from TEMP_SENSOR
+  vout=analogRead(TEMP_SENSOR); 
+  vout=(vout*500)/1023; //Temperator Value
+  tempc=vout; // Storing value in Degree Celsius
 
   // Check if a heartbeat is detected
   if (pulseSensor.sawStartOfBeat()) 
@@ -44,13 +60,18 @@ void loop() {
     Serial.println("♥ A HeartBeat Happened!");
     Serial.print("BPM: ");
     Serial.println(currentBPM);
+    Serial.print("Body Temperature: ");
+    Serial.println(tempc);
 
     lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Temp: ");
+    lcd.print(tempc);
     lcd.setCursor(0, 1);
     lcd.print("BPM: ");
     lcd.print(currentBPM);
   }
  
   // Add a small delay to reduce CPU usage
-  delay(20);
+  delay(1000);
 }
