@@ -1,6 +1,8 @@
 #define USE_ARDUINO_INTERRUPTS true
 //Libraries
   #include <PulseSensorPlayground.h>
+#include <OneWire.h>  // used to access 1-wire temperature sensors, memory and other chips.
+#include <DallasTemperature.h>  // Arduino Library for Dallas Temperature ICs
   #include <LiquidCrystal_I2C.h>
 
 //Constants
@@ -12,10 +14,11 @@ const int TEMP_SENSOR = A3;      // Analog PIN where the Temperature Sensor is c
 // Variables
 float tempc; //variable to store temperature in degree Celsius
 float tempf; //variable to store temperature in Fahreinheit
-float vout; //temporary variable to hold sensor reading
 
 //Objects
 PulseSensorPlayground pulseSensor;
+OneWire temp_onewire(TEMP_SENSOR);  // Setup a oneWire instance.
+DallasTemperature temp_sensor(&temp_onewire); // Pass the oneWire reference.
 LiquidCrystal_I2C lcd(0x27, 16, 2);
  
 void setup() {
@@ -37,6 +40,10 @@ void setup() {
   {
     Serial.println("PulseSensor object created successfully!");
   }
+
+  // Start temperature sensor
+  temp_sensor.begin();
+  Serial.println("Temperature Sensor Started");
 }
 
 void loop() {
@@ -51,9 +58,9 @@ void loop() {
   int currentBPM = pulseSensor.getBeatsPerMinute();
 
   // Reading the value from TEMP_SENSOR
-  vout=analogRead(TEMP_SENSOR); 
-  vout=vout*(5.00/1023); //Temperature Value
-  tempc=vout*10.0; // Storing value in Degree Celsius
+  temp_sensor.requestTemperatures();
+  tempc = temp_sensor.getTempCByIndex(0);  // read temperature in Celsius
+                                           // NOTE: 0 is the first device
 
   // Check if a heartbeat is detected
   if (pulseSensor.sawStartOfBeat()) 
