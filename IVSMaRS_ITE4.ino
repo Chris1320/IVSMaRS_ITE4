@@ -41,6 +41,7 @@ void setup() {
 
 void loop() {
   //LCD Init
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Welcome");
   lcd.setCursor(0, 1);
@@ -51,8 +52,8 @@ void loop() {
 
   // Reading the value from TEMP_SENSOR
   vout=analogRead(TEMP_SENSOR); 
-  vout=(vout*500)/1023; //Temperator Value
-  tempc=vout; // Storing value in Degree Celsius
+  vout=vout*(5.00/1023); //Temperature Value
+  tempc=vout*10.0; // Storing value in Degree Celsius
 
   // Check if a heartbeat is detected
   if (pulseSensor.sawStartOfBeat()) 
@@ -75,3 +76,6 @@ void loop() {
   // Add a small delay to reduce CPU usage
   delay(1000);
 }
+
+
+
