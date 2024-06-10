@@ -1,7 +1,8 @@
 #define USE_ARDUINO_INTERRUPTS true
 //Libraries
-  #include <PulseSensorPlayground.h>
-  #include <LiquidCrystal_I2C.h>
+  #include <PulseSensorPlayground.h> //Pulse Sensor
+  #include <LiquidCrystal_I2C.h> //LCD 
+  #include <SoftwareSerial.h> //Wifi Module
 
 //Constants
 const int PULSE_SENSOR_PIN = A0;  // Analog PIN where the PulseSensor is connected
@@ -15,8 +16,9 @@ float tempf; //variable to store temperature in Fahreinheit
 float vout; //temporary variable to hold sensor reading
 
 //Objects
-PulseSensorPlayground pulseSensor;
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+PulseSensorPlayground pulseSensor; //Pulse Sensor
+LiquidCrystal_I2C lcd(0x27, 16, 2); //LCD
+SoftwareSerial ser(0,1); //RX, TX for Wifi Module
  
 void setup() {
   // Initialize Serial
