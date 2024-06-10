@@ -1,35 +1,31 @@
 #define USE_ARDUINO_INTERRUPTS true
+//Libraries
+  #include <PulseSensorPlayground.h>
+  #include <LiquidCrystal_I2C.h>
 
-// Libraries
-#include <DallasTemperature.h>  // Arduino Library for Dallas Temperature ICs
-#include <LiquidCrystal_I2C.h>  // Arduino Library for I2C LCD
-#include <OneWire.h>  // used to access 1-wire temperature sensors, memory and other chips.
-#include <PulseSensorPlayground.h>  // Arduino Library for PulseSensor
-
-// Constants
-const int PULSE_SENSOR_PIN = A0;  // The PulseSensor
-const int LED_PIN = 13;           // On-board LED PIN
-const int THRESHOLD = 560;        // Threshold for detecting a heartbeat
-const int TEMP_SENSOR = A3;       // The Temperature Sensor
+//Constants
+const int PULSE_SENSOR_PIN = A0;  // Analog PIN where the PulseSensor is connected
+const int LED_PIN = 13;          // On-board LED PIN
+const int THRESHOLD = 512;       // Threshold for detecting a heartbeat
+const int TEMP_SENSOR = A3;      // Analog PIN where the Temperature Sensor is connected
 
 // Variables
-float tempc;  // variable to store temperature in degree Celsius
-float tempf;  // variable to store temperature in Fahreinheit
+float tempc; //variable to store temperature in degree Celsius
+float tempf; //variable to store temperature in Fahreinheit
+float vout; //temporary variable to hold sensor reading
 
-// Objects
+//Objects
 PulseSensorPlayground pulseSensor;
-OneWire temp_onewire(TEMP_SENSOR);             // Setup a oneWire instance.
-DallasTemperature temp_sensor(&temp_onewire);  // Pass the oneWire reference.
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
+ 
 void setup() {
   // Initialize Serial
   Serial.begin(9600);
   lcd.init();
   lcd.backlight();
 
-  // pinMode INPUT
-  pinMode(TEMP_SENSOR, INPUT);  // Configuring TEMP_SENSOR pin as input
+  //pinMode INPUT
+  pinMode(TEMP_SENSOR,INPUT); // Configuring TEMP_SENSOR pin as input
 
   // PulseSensor Configuration
   pulseSensor.analogInput(PULSE_SENSOR_PIN);
@@ -37,17 +33,14 @@ void setup() {
   pulseSensor.setThreshold(THRESHOLD);
 
   // Check if PulseSensor is initialized
-  if (pulseSensor.begin()) {
+  if (pulseSensor.begin()) 
+  {
     Serial.println("PulseSensor object created successfully!");
   }
-
-  // Start temperature sensor
-  temp_sensor.begin();
-  Serial.println("Temperature Sensor Started");
 }
 
 void loop() {
-  // LCD Init
+  //LCD Init
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Welcome");
@@ -58,12 +51,13 @@ void loop() {
   int currentBPM = pulseSensor.getBeatsPerMinute();
 
   // Reading the value from TEMP_SENSOR
-  temp_sensor.requestTemperatures();
-  tempc = temp_sensor.getTempCByIndex(0);  // read temperature in Celsius
-                                           // NOTE: 0 is the first device
+  vout=analogRead(TEMP_SENSOR); 
+  vout=vout*(5.00/1023); //Temperature Value
+  tempc=vout*10.0; // Storing value in Degree Celsius
 
   // Check if a heartbeat is detected
-  if (pulseSensor.sawStartOfBeat()) {
+  if (pulseSensor.sawStartOfBeat()) 
+  {
     Serial.println("♥ A HeartBeat Happened!");
     Serial.print("BPM: ");
     Serial.println(currentBPM);
@@ -78,7 +72,7 @@ void loop() {
     lcd.print("BPM: ");
     lcd.print(currentBPM);
   }
-
+ 
   // Add a small delay to reduce CPU usage
   delay(1000);
 }
