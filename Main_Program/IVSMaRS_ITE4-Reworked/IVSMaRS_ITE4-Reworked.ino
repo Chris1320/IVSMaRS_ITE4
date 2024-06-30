@@ -7,6 +7,12 @@
   //MAX30105.h
   #include <LiquidCrystal_I2C.h> //LCD 
   #include <SoftwareSerial.h> //Wifi Module
+  #include <WiFi.h> //WiFi Module
+
+//WiFi Setup
+#define WIFI_SSID "Wifi" // Change the name of your WIFI
+#define WIFI_PASSWORD "password" // Change the password of your WIFI
+
 
 //Constants
 const int AD8232OutputPin = A0; // AD8232 output connected to Arduino A0 pin
