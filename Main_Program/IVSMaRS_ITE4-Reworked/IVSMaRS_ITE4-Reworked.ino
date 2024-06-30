@@ -21,7 +21,7 @@ float vout; //temporary variable to hold sensor reading
 
 //Objects
 MAX30105 particleSensor; //MAX30105.h
-LiquidCrystal_I2C lcd(0x27, 16, 2); //LCD
+LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
 SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 void MAX30102() {
