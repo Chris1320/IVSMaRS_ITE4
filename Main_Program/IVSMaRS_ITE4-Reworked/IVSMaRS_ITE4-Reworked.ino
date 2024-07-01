@@ -60,6 +60,18 @@ void ECG(){
 float readMAX30102Temperature() {
   float temperature = particleSensor.readTemperature();
 }
+
+void connectToNetwork(){
+  Serial.println("Connected to network");
+  Serial.println(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.println("Establishing connection to WiFi..");
+  }
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+}
  
 void setup() {
   // Initialize Serial
@@ -70,6 +82,8 @@ void setup() {
   LCD_Display(); //LCD
 
   ECG(); //ECG
+
+  connectToNetwork(); //Establishes WiFi Connection
 
 }
 
