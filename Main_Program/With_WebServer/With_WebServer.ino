@@ -1,6 +1,4 @@
-//Libraries
-  #include <Wire.h>
-  //MAX30105.h
+//MAX30105.h
   #include "MAX30105.h"
   #include "heartRate.h"
   #include <spo2_algorithm.h>
@@ -11,7 +9,7 @@
 
 //WiFi Setup
 #define WIFI_SSID "Wifi" // Change the name of your WIFI
-#define WIFI_PASSWORD "Password" // Change the password of your WIFI
+#define WIFI_PASSWORD "password" // Change the password of your WIFI
 
 
 //Constants
@@ -52,16 +50,6 @@ void LCD_Display(){
   lcd.backlight();
 }
 
-void LCD_Welcome(){
-  lcd.clear(); // Clear the LCD screen before displaying new data
-    lcd.setCursor(0, 0); // Set cursor to first line
-    lcd.print("Welcome");
-    lcd.setCursor(0, 1); // Move to the next line
-    lcd.print("to");
-    lcd.setCursor(0, 2); // Move to the third line
-    lcd.print("IVSMaRS");
-}
-
 void ECG(){
   pinMode(LOPlusPin, INPUT); // Optional: for lead-off detection
   pinMode(LOMinusPin, INPUT); // Optional: for lead-off detection
@@ -82,17 +70,20 @@ void connectToNetwork(){
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 }
+
+void webServer (){
+  
+}
  
 void setup() {
   // Initialize Serial
   Serial.begin(115200);
 
-  //connectToNetwork(); //Establishes WiFi Connection
+  connectToNetwork(); //Establishes WiFi Connection
 
   MAX30102(); //MAX30102
 
   LCD_Display(); //LCD
-  LCD_Welcome(); //Welcome Message
 
   ECG(); //ECG
 
@@ -138,9 +129,6 @@ void loop() {
     lcd.print("Temp: ");
     lcd.print(temperature);
     lcd.print(" C");
-  } else {
-    lcd.clear();
-    LCD_Welcome(); //Welcome Message
   }
 
   //ECG
@@ -151,9 +139,8 @@ void loop() {
     Serial.print("Heart Rate Signal: ");
     Serial.println(heartRateSignal);
 
-    
     //LCD Output
-    lcd.clear();
+    lcd.clear
     lcd.setCursor(0, 3); // Set cursor to fourth line 
   }
   
