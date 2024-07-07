@@ -7,11 +7,12 @@
   //MAX30105.h
   #include <LiquidCrystal_I2C.h> //LCD 
   #include <SoftwareSerial.h> //Wifi Module
-  #include <WiFi.h> //WiFi Module
+  #include <ESP8266.h>
 
 //WiFi Setup
-#define WIFI_SSID "Wifi" // Change the name of your WIFI
-#define WIFI_PASSWORD "Password" // Change the password of your WIFI
+#define SSID "SSID" // Change the name of your WIFI
+#define PWD "PASSWORD" // Change the password of your WIFI
+SoftwareSerial	ConsoleOut(8, 9);
 
 
 //Constants
@@ -41,9 +42,9 @@ if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz 
   }
   Serial.println("Place your index finger on the sensor with steady pressure.");
 
-  particleSensor.setup(0x1F, 4, 2, 400, 411, 4096); //Configure sensor with default settings
+  particleSensor.setup(0x1F, 4, 3, 400, 411, 4096); //Configure sensor with default settings
   particleSensor.setPulseAmplitudeRed(0x0A); //Turn Red LED to low to indicate sensor is running
-  particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
+  particleSensor.setPulseAmplitudeGreen(0x0A); //Turn off Green LED
   particleSensor.enableDIETEMPRDY(); //Enable the temp ready interrupt. This is required.
 }
 
@@ -72,22 +73,26 @@ float readMAX30102Temperature() {
 }
 
 void connectToNetwork(){
-  Serial.println("Connected to network");
-  Serial.println(WIFI_SSID);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED){
-    delay(500);
-    Serial.println("Establishing connection to WiFi..");
-  }
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
+  char	*ipAddress, ap[31];
+
+	WiFi.reset(WIFI_RESET_HARD);
+	WiFi.begin(115200);
+	if (WiFi.join(SSID, PWD) == WIFI_ERR_OK) {
+		ipAddress = WiFi.ip(WIFI_MODE_STA);
+		ConsoleOut.print(F("\n\rIP address:"));
+		ConsoleOut.print(ipAddress);
+		ConsoleOut.print(':');
+		if (WiFi.isConnect(ap))
+			ConsoleOut.println(ap);
+		else
+			ConsoleOut.println(F("not found"));
+	} else
+		while (1);
 }
  
 void setup() {
   // Initialize Serial
   Serial.begin(115200);
-
-  //connectToNetwork(); //Establishes WiFi Connection
 
   MAX30102(); //MAX30102
 
@@ -95,6 +100,8 @@ void setup() {
   LCD_Welcome(); //Welcome Message
 
   ECG(); //ECG
+
+  connectToNetwork(); //Connect to Network
 
 }
 
