@@ -98,6 +98,38 @@ void connectToNetwork(){
   sendCommand(cmd, 5000, true);
 }
 
+void startWebServer(){
+  sendCommand("AT+CIPMUX=1", 1000, true); // Enable multiple connections
+  sendCommand("AT+CIPSERVER=1,80", 1000, true); // Start server on port 80
+}
+
+void webServer(){
+if (Serial1.available()) { // Check if the ESP01 has data available
+    String request = Serial1.readStringUntil('\n'); // Read the incoming data until newline
+    
+    // Check if it's an HTTP GET request
+    if (request.indexOf("GET /") >= 0) {
+      // Read sensor data
+      MAX30102(); // Placeholder for function to read from MAX3015 and AD8232
+      int ecgValue = analogRead(AD8232OutputPin); // Read ECG value
+
+      // Prepare HTTP response with sensor data
+      String httpResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>";
+      httpResponse += "Heart Rate: " + String(heartRate) + "<br>";
+      httpResponse += "SpO2: " + String(spo2) + "<br>";
+      httpResponse += "ECG Value: " + String(ecgValue) + "<br>";
+      httpResponse += "</body></html>";
+
+      // Send the response to the client
+      Serial1.println("AT+CIPSEND=0," + String(httpResponse.length())); // Assuming channel ID is 0
+      delay(100);
+      Serial1.println(httpResponse);
+      delay(100);
+      Serial1.println("AT+CIPCLOSE=0"); // Close the connection
+    }
+  }
+}
+
 void initializeESP01() {
   Serial1.println("AT"); // Test AT startup
   delay(1000); // Wait for a response
@@ -122,6 +154,8 @@ void setup() {
   initializeESP01();
 
   connectToNetwork(); //Connect to Network
+
+  startWebServer(); //Web Server
 
   MAX30102(); //MAX30102
 
@@ -191,6 +225,8 @@ void loop() {
     lcd.print("ECG: ");
     lcd.print(heartRateSignal);
   }
+
+  webServer(); //Web Server
   
   // Add a small delay to reduce CPU usage
   delay(1000);
