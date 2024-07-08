@@ -15,8 +15,8 @@ SoftwareSerial  esp8266(0, 1); // RX, TX
 SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 //WiFi Setup
-#define SSID "SSID" // Change the name of your WIFI
-#define PWD "PWD" // Change the password of your WIFI
+#define SSID "" // Change the name of your WIFI
+#define PWD "" // Change the password of your WIFI
 
 //Constants
 const int AD8232OutputPin = A0; // AD8232 output connected to Arduino A0 pin
@@ -38,7 +38,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
 
 //Thingspeak API
 const String thingSpeakServer = "api.thingspeak.com";
-const String thingSpeakAPIKey = "AS56RO8WVUUV5T3L2OP6AF";
+const String thingSpeakAPIKey = "";
 
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
@@ -117,7 +117,7 @@ void initializeESP01() {
 void sendReadingToThingSpeak() {
   int field1Value = heartRate;
   int field2Value = spo2;
-  int field3Value = readMAX30102Temperature();
+  float field3Value = particleSensor.readTemperature();
   int field4Value = analogRead(AD8232OutputPin);
 
   // Construct the HTTP POST request body
