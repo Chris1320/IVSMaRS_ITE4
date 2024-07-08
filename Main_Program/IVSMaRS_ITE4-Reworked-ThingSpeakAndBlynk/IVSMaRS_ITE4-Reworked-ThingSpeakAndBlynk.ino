@@ -36,6 +36,10 @@ int8_t validHeartRate; //indicator to show if the heart rate calculation is vali
 MAX30105 particleSensor; //MAX30105.h
 LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
 
+//Thingspeak API
+const String thingSpeakServer = "api.thingspeak.com";
+const String thingSpeakAPIKey = "AS56RO8WVUUV5T3L2OP6AF";
+
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
   {
@@ -109,6 +113,30 @@ void initializeESP01() {
   }
   // Add additional AT commands as needed for your application
 }
+
+void sendReadingToThingSpeak() {
+  int field1Value = heartRate;
+  int field2Value = spo2;
+  int field3Value = readMAX30102Temperature();
+  int field4Value = analogRead(AD8232OutputPin);
+
+  // Construct the HTTP POST request body
+  String httpRequestBody = "api_key=" + thingSpeakAPIKey + "&field1=" + String(field1Value) + "&field2=" + String(field2Value) + "&field3=" + String(field3Value) + "&field4=" + String(field4Value);
+  String httpRequest = "POST /update HTTP/1.1\r\n";
+  httpRequest += "Host: api.thingspeak.com\r\n";
+  httpRequest += "Connection: close\r\n";
+  httpRequest += "Content-Type: application/x-www-form-urlencoded\r\n";
+  httpRequest += "Content-Length: " + String(httpRequestBody.length()) + "\r\n\r\n";
+  httpRequest += httpRequestBody;
+
+  // Send the HTTP POST request
+  sendCommand("AT+CIPMUX=1", 1000, false); // Enable multiple connections
+  sendCommand("AT+CIPSTART=0,\"TCP\",\"api.thingspeak.com\",80", 5000, false); // Start a TCP connection
+  sendCommand("AT+CIPSEND=0," + String(httpRequest.length()), 5000, false); // Prepare to send data
+  Serial1.println(httpRequest); // Send the HTTP request
+  delay(5000); // Wait for the data to be sent
+  sendCommand("AT+CIPCLOSE=0", 1000, false); // Close the TCP connection
+}
  
 void setup() {
   //Turn on LCD
@@ -171,6 +199,7 @@ void loop() {
     lcd.print("Temp: ");
     lcd.print(temperature);
     lcd.print(" C");
+    sendReadingToThingSpeak(); //Send collected data to ThingSpeak API
   } else {
     lcd.clear();
     LCD_Welcome(); //Welcome Message
@@ -190,6 +219,7 @@ void loop() {
     lcd.setCursor(0, 3); // Set cursor to fourth line 
     lcd.print("ECG: ");
     lcd.print(heartRateSignal);
+    sendReadingToThingSpeak(); //Send collected data to ThingSpeak API
   }
   
   // Add a small delay to reduce CPU usage
