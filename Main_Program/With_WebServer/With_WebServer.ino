@@ -11,9 +11,10 @@
 
 //WiFi Setup
 #define SSID "SSID" // Change the name of your WIFI
-#define PWD "PASSWORD" // Change the password of your WIFI
+#define PWD "PWD" // Change the password of your WIFI
 SoftwareSerial	ConsoleOut(8, 9);
 SoftwareSerial esp8266(0, 1); // RX, TX
+SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 //Constants
 const int AD8232OutputPin = A0; // AD8232 output connected to Arduino A0 pin
@@ -32,7 +33,6 @@ int8_t validHeartRate; //indicator to show if the heart rate calculation is vali
 //Objects
 MAX30105 particleSensor; //MAX30105.h
 LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
-SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
@@ -78,7 +78,7 @@ void connectToNetwork(){
 }
 
 void setupWebServer() {
-  sendCommand("AT+CWMODE=1", 1000, true); // Set the ESP as Station
+  sendCommand("AT+CWMODE=2", 1000, true); // Set the ESP as Station
   sendCommand("AT+CIPMUX=1", 1000, true); // Enable multiple connections
   sendCommand("AT+CIPSERVER=1,80", 1000, true); // Turn on server on port 80
 }
@@ -127,8 +127,8 @@ void sendCommand(String command, const int timeout, boolean debug) {
 void setup() {
   // Initialize Serial
   Serial.begin(115200);
-  esp8266.begin(115200);
-  ConsoleOut.begin(115200);
+  esp8266.begin(9600);
+  ConsoleOut.begin(9600);
 
   MAX30102(); //MAX30102
 

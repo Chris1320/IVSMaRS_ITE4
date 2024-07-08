@@ -7,13 +7,16 @@
   //MAX30105.h
   #include <LiquidCrystal_I2C.h> //LCD 
   #include <SoftwareSerial.h> //Wifi Module
-  #include <ESP8266.h>
+  #include <ESP8266.h> //WiFi Module
+
+// Initialize SoftwareSerial
+SoftwareSerial	ConsoleOut(8, 9);
+SoftwareSerial  esp8266(0, 1); // RX, TX
+SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 //WiFi Setup
 #define SSID "SSID" // Change the name of your WIFI
-#define PWD "PASSWORD" // Change the password of your WIFI
-SoftwareSerial	ConsoleOut(8, 9);
-
+#define PWD "PWD" // Change the password of your WIFI
 
 //Constants
 const int AD8232OutputPin = A0; // AD8232 output connected to Arduino A0 pin
@@ -32,7 +35,6 @@ int8_t validHeartRate; //indicator to show if the heart rate calculation is vali
 //Objects
 MAX30105 particleSensor; //MAX30105.h
 LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
-SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
@@ -72,36 +74,60 @@ float readMAX30102Temperature() {
   float temperature = particleSensor.readTemperature();
 }
 
-void connectToNetwork(){
-  char	*ipAddress, ap[31];
+void sendCommand(String command, const int timeout, boolean debug) {
+  Serial1.println(command); // Send the command to the ESP8266
+  long int time = millis();
+  while ((time + timeout) > millis()) {
+    while (Serial1.available()) {
+      // The ESP8266 will send its response. Print it if debug is true.
+      String response = Serial1.readString();
+      if (debug) {
+        Serial.print(response);
+        lcd.clear(); // Clear the LCD screen before displaying new data
+        lcd.setCursor(0, 0); // Set cursor to first line
+        lcd.print(response);
+        delay(1000);
+      }
+    }
+  }
+}
 
-	WiFi.reset(WIFI_RESET_HARD);
-	WiFi.begin(115200);
-	if (WiFi.join(SSID, PWD) == WIFI_ERR_OK) {
-		ipAddress = WiFi.ip(WIFI_MODE_STA);
-		ConsoleOut.print(F("\n\rIP address:"));
-		ConsoleOut.print(ipAddress);
-		ConsoleOut.print(':');
-		if (WiFi.isConnect(ap))
-			ConsoleOut.println(ap);
-		else
-			ConsoleOut.println(F("not found"));
-	} else
-		while (1);
+void connectToNetwork(){
+  sendCommand("AT+CWMODE=1", 1000, true); // Set the ESP as Station
+  String cmd = "AT+CWJAP=\"" + String(SSID) + "\",\"" + String(PWD) + "\"";
+  sendCommand(cmd, 5000, true);
+}
+
+void initializeESP01() {
+  Serial1.println("AT"); // Test AT startup
+  delay(1000); // Wait for a response
+  if (Serial1.available()) {
+    String response = Serial1.readString();
+    Serial.println("ESP01 Response: " + response); // Print response to Serial Monitor
+  } else {
+    Serial.println("No response from ESP01");
+  }
+  // Add additional AT commands as needed for your application
 }
  
 void setup() {
+  //Turn on LCD
+  LCD_Display(); //LCD
   // Initialize Serial
   Serial.begin(115200);
+  esp8266.begin(9600); // Start the serial communication with the Serial1
+  ConsoleOut.begin(9600);
+  Serial1.begin(9600); // Start the serial communication with the Serial1
+  // Initialize ESP01
+  initializeESP01();
+
+  connectToNetwork(); //Connect to Network
 
   MAX30102(); //MAX30102
 
-  LCD_Display(); //LCD
   LCD_Welcome(); //Welcome Message
 
   ECG(); //ECG
-
-  connectToNetwork(); //Connect to Network
 
 }
 
