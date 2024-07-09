@@ -15,8 +15,12 @@ SoftwareSerial  esp8266(0, 1); // RX, TX
 SoftwareSerial ser(0,1); //RX, TX for Wifi Module
 
 //WiFi Setup
-#define SSID "" // Change the name of your WIFI
-#define PWD "" // Change the password of your WIFI
+#define SSID "SSID" // Change the name of your WIFI
+#define PWD "PWD" // Change the password of your WIFI
+
+//Blynk API
+const char* blynkServer = "blynk-cloud.com";
+const char* authToken = "";
 
 //Constants
 const int AD8232OutputPin = A0; // AD8232 output connected to Arduino A0 pin
@@ -38,7 +42,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
 
 //Thingspeak API
 const String thingSpeakServer = "api.thingspeak.com";
-const String thingSpeakAPIKey = "";
+const String thingSpeakAPIKey = "6RO8WVUUV5T3L2OP";
 
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
@@ -137,6 +141,21 @@ void sendReadingToThingSpeak() {
   delay(5000); // Wait for the data to be sent
   sendCommand("AT+CIPCLOSE=0", 1000, false); // Close the TCP connection
 }
+
+void updateBlynk(int vPin, float value) {
+    String cmd = "AT+CIPSTART=\"TCP\",\"" + String(blynkServer) + "\",80";
+    esp8266.println(cmd);
+    if(esp8266.find("OK")) {
+        String httpRequest = "GET /" + String(authToken) + "/update/V" + String(vPin) + "?value=" + String(value) + " HTTP/1.1\r\nHost: " + String(blynkServer) + "\r\nConnection: close\r\n\r\n";
+        cmd = "AT+CIPSEND=" + String(httpRequest.length());
+        esp8266.println(cmd);
+        if(esp8266.find(">")) {
+            esp8266.println(httpRequest);
+        }
+        delay(1000); // Wait for the request to complete
+        esp8266.println("AT+CIPCLOSE"); // Close the TCP connection
+    }
+}
  
 void setup() {
   //Turn on LCD
@@ -221,6 +240,13 @@ void loop() {
     lcd.print(heartRateSignal);
     sendReadingToThingSpeak(); //Send collected data to ThingSpeak API
   }
+
+  // Update Blynk
+  int heartRateSignal = analogRead(AD8232OutputPin);
+  updateBlynk(1, heartRate); // V1 for heart rate
+  updateBlynk(2, spo2); // V2 for SPO2
+  updateBlynk(3, temperature); // V3 for temperature
+  updateBlynk(4, heartRateSignal); // V4 for ECG
   
   // Add a small delay to reduce CPU usage
   delay(1000);
