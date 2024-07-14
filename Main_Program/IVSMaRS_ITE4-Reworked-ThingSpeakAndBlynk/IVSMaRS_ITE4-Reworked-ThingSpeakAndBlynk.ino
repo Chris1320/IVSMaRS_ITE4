@@ -42,7 +42,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); //LCD
 
 //Thingspeak API
 const String thingSpeakServer = "api.thingspeak.com";
-const String thingSpeakAPIKey = "6RO8WVUUV5T3L2OP";
+const String thingSpeakAPIKey = "";
 
 void MAX30102() {
 if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
